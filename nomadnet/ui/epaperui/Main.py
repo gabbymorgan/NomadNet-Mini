@@ -72,27 +72,21 @@ class MainDisplay():
             epd.init(epd.PART_UPDATE)
             time.sleep(10)
 
-            quit()
+            self.quit()
 
         except Exception as e:
             print(e)
-            quit()
+            self.quit()
 
     def quit(self):
-        logterm_pid = None
+        epd = self.e_paper_display
         self.flag_t = 0
-        self.e_paper_display.sleep()
+        epd.Clear(0xFF)
+        epd.sleep()
         time.sleep(2)
         self.thread.join()
-        self.e_paper_display.Dev_exit()
+        epd.Dev_exit()
 
-        if True or RNS.vendor.platformutils.is_android():
-            if self.sub_displays.log_display != None and self.sub_displays.log_display.log_term != None:
-                if self.sub_displays.log_display.log_term.log_term != None:
-                    logterm_pid = self.sub_displays.log_display.log_term.log_term.pid
-                    if logterm_pid != None:
-                        import os, signal
-                        os.kill(logterm_pid, signal.SIGKILL)
 
     def pthread_irq(self) :
         print("pthread running")
