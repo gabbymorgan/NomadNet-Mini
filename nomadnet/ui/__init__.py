@@ -12,7 +12,9 @@ UI_MENU       = 0x01
 UI_TEXT       = 0x02
 UI_GRAPHICAL  = 0x03
 UI_WEB        = 0x04
-UI_MODES = [UI_NONE, UI_MENU, UI_TEXT, UI_GRAPHICAL, UI_WEB]
+UI_EPAPER     = 0x05
+
+UI_MODES = [UI_NONE, UI_MENU, UI_TEXT, UI_GRAPHICAL, UI_WEB, UI_EPAPER]
 
 def spawn(uimode):
     if uimode in UI_MODES:
@@ -24,6 +26,9 @@ def spawn(uimode):
         if uimode == UI_MENU:
             from .MenuUI import MenuUI
             return MenuUI()
+        elif uimode == UI_EPAPER:
+            from .EPaperUI import EPaperUI
+            return EPaperUI()
         elif uimode == UI_TEXT:
             from .TextUI import TextUI
             return TextUI()

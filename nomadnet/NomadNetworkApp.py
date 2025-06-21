@@ -796,6 +796,8 @@ class NomadNetworkApp:
                         self.uimode = nomadnet.ui.UI_NONE
                     if value == "menu":
                         self.uimode = nomadnet.ui.UI_MENU
+                    if value == "epaper":
+                        self.uimode = nomadnet.ui.UI_EPAPER
                     if value == "text":
                         self.uimode = nomadnet.ui.UI_TEXT
                         if "textui" in self.config:

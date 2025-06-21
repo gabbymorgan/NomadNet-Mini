@@ -8,6 +8,8 @@ with open("README.md", "r") as fh:
 package_data = {
 "": [
     "examples/messageboard/*",
+    "ui/epaperui/assets/*",
+    "ui/epaperui/assets/fonts/*"
     ]
 }
 
@@ -30,6 +32,6 @@ setuptools.setup(
     entry_points= {
         'console_scripts': ['nomadnet=nomadnet.nomadnet:main']
     },
-    install_requires=["rns>=0.9.6", "lxmf>=0.7.1", "urwid>=2.6.16", "qrcode"],
+    install_requires=["rns>=0.9.6", "lxmf>=0.7.1", "urwid>=2.6.16", "qrcode", "gpiozero", "smbus", "spidev", "lgpio", "numpy", "pillow"],
     python_requires=">=3.7",
 )
