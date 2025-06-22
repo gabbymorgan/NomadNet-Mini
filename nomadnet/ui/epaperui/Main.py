@@ -41,7 +41,6 @@ class EPaperInterface():
             
             self.touch_thread.daemon = True
             self.touch_thread.start()
-
             self.refresh_thread.daemon = True
             self.refresh_thread.start()
 
@@ -98,35 +97,66 @@ class MainDisplay():
         self.app = app
         self.e_paper = EPaperInterface()
 
+        self.app_is_running = True
         self.conversations_display = ConversationsDisplay(self.app)
-        self.menu_display = MenuDisplay(self.app)
-        self.sub_displays = SubDisplays(self.app)
+        self.pages = [self.conversations_display]
+        self.menu_display = Menu(self.app)
+        self.page_display = Pages(self.app, self.pages)
         self.image = None
         
 
     def start(self):
-        self.menu_display.start()
+        try:
+            self.menu_display.start()
+            self.render()
+            while self.app_is_running:
+                time.sleep(5)
+            self.e_paper.quit()
+        except Exception as e:
+            RNS.log("An error occured in the Main Display. Exception was:" + str(e), RNS.LOG_ERROR)
+            self.e_paper.quit()
+
+    def render(self):
         display = self.e_paper.display
-        touch_interface = self.e_paper.touch_interface
+        image = self.image
 
-        self.image = Image.new('1', (display.height, display.width), 255)
-        self.image.rotate(90)
-        draw = ImageDraw.Draw(self.image)
+        image = Image.new('1', (display.height, display.width), 255)
+        image.rotate(90)
+        draw = ImageDraw.Draw(image)
         draw.text((10, 10), str(self.app.identity), font=FONT_12, fill=0)
-        display.displayPartBaseImage(display.getbuffer(self.image))
+        display.displayPartBaseImage(display.getbuffer(image))
         display.init(display.PART_UPDATE)
-        time.sleep(10)
+        self.page_display.render()
 
-class SubDisplays():
-    def __init__(self, app):
+
+class Pages():
+    def __init__(self, app, pages):
         self.app = app
 
-    def start():
+        self.pages = pages
+        self.selected_page = 0
+
+
+    def start(self):
         return
 
-class MenuDisplay():
+    def swipe_handler(self):
+        # interpret swipe gesture from touch_interface
+        # if diff x difference is greater than y differeence, interperet as a horizontal swipe
+        # move up self.pages on right swipe and down on left swipe
+
+        return
+    
+    def render(self):
+        return
+
+
+class Menu():
     def __init__(self, app):
         self.app = app
 
     def start(self):
+        return
+    
+    def render(self):
         return
