@@ -32,22 +32,18 @@ class NetworkDisplay(Component):
             selected_page = self.parent.pages[self.parent.selected_page_index]
             while selected_page.title == self.title:
                 gt.GT_Scan(GT_Dev, GT_Old)
-                if GT_Dev.S[0] > 0:
-                    self.ui.last_touch = time.time()
                 if (GT_Old.X[0] == GT_Dev.X[0] and GT_Old.Y[0] == GT_Dev.Y[0] and GT_Old.S[0] == GT_Dev.S[0]):
                     continue
                 elif (GT_Dev.Y[0] < (self.ui.height - 40)):
-                    print("up")
                     new_current_announce_index = min(
                         len(self.announces)-1, self.current_announce_index + 1)
                 elif (GT_Dev.Y[0] > 40):
-                    print("down")
                     new_current_announce_index = max(
                         0, self.current_announce_index - 1)
                 if new_current_announce_index != self.current_announce_index:
                     self.current_announce_index = new_current_announce_index
                     self.update()
-                    time.sleep(1)
+                self.ui.last_touched = time.time()
 
     def start(self):
         self.swipe_thread.start()

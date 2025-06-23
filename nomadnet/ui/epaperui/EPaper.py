@@ -18,8 +18,8 @@ class EPaperInterface():
     # https://www.waveshare.com/wiki/2.13inch_Touch_e-Paper_HAT_Manual#Raspberry_Pi
 
     MAX_PARTIAL_REFRESHES = 10  # Protects screen from excessive partial refresh
-    MAX_REFRESH_INTERVAL = 24 * 60 * 60  # 24 hours
-    TIMEOUT_INTERVAL = 60  # 10 minutes
+    MAX_REFRESH_INTERVAL = 24 * 60 * 60 
+    TIMEOUT_INTERVAL = 120
     FONT_15 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 15)
     FONT_12 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 12)
 
@@ -35,51 +35,32 @@ class EPaperInterface():
             self.canvas = None
             self.reset_canvas()
             self.touch_flag = True
-            self.refresh_flag = True
+            self.display_thread_flag = True
             self.app_is_running = True
             self.screen_is_active = True
             self.should_render = False
             self.partial_refresh_counter = 0
             self.last_full_refresh = time.time()
-            self.last_touch = time.time()
+            self.last_touched = time.time()
 
             self.touch_thread = threading.Thread(
                 daemon=True, target=self.touch_loop)
-            self.refresh_thread = threading.Thread(
-                daemon=False, target=self.refresh_loop)
-
+            self.display_thread = threading.Thread(
+                daemon=False, target=self.display_loop)
 
             self.touch_thread.start()
-            self.refresh_thread.start()
+            self.display_thread.start()
 
             self.display.init(self.display.FULL_UPDATE)
             self.touch_interface.GT_Init()
             self.display.Clear(0xFF)
 
+        except KeyboardInterrupt:
+            self.quit()
+
         except Exception as e:
             RNS.log(
                 "An error occured in the E-Paper UI. Exception was:" + str(e), RNS.LOG_ERROR)
-
-    def shutdown(self):
-        self.touch_flag = False
-        self.refresh_flag = False
-        self.screen_is_active = False
-        self.app_is_running = False
-        self.sleep()
-        self.display.Dev_exit()
-        self.touch_thread.join()
-        self.refresh_thread.join()
-
-    def sleep(self):
-        self.clear_screen()
-        self.display.sleep()
-
-    def awake(self):
-        self.display.init(self.display.FULL_UPDATE)
-        self.clear_screen()
-
-    def clear_screen(self):
-        self.display.Clear(0xFF)
 
     def touch_loop(self):
         while self.touch_flag:
@@ -88,24 +69,60 @@ class EPaperInterface():
             else:
                 self.touch_interface_dev.Touch = 0
 
-    def refresh_loop(self):
-        while self.refresh_flag:
+    def display_loop(self):
+        while self.display_thread_flag:
             now = time.time()
             if self.should_render:
-                self.should_render = False
                 self.render()
-            elif now - self.last_touch > self.TIMEOUT_INTERVAL:
+            elif self.screen_is_active and (now - self.last_touched > self.TIMEOUT_INTERVAL):
                 self.sleep()
+            elif not self.screen_is_active and (now - self.last_touched < self.TIMEOUT_INTERVAL):
+                self.awaken()
             elif now - self.last_full_refresh > self.MAX_REFRESH_INTERVAL:
                 self.clear_screen()
             time.sleep(1)
+
+    def sleeping_loop(self):
+        gt = self.touch_interface
+        GT_Dev = self.touch_interface_dev
+        GT_Old = self.touch_interface_old
+        
+        while not self.screen_is_active:
+            gt.GT_Scan(GT_Dev, GT_Old)
+            if (GT_Old.X[0] == GT_Dev.X[0] and GT_Old.Y[0] == GT_Dev.Y[0] and GT_Old.S[0] == GT_Dev.S[0]):
+                self.last_touched = time.time()
+
+    def shutdown(self):
+        self.touch_flag = False
+        self.display_thread_flag = False
+        self.screen_is_active = False
+        self.app_is_running = False
+        self.sleep()
+        self.display.Dev_exit()
+        self.touch_thread.join()
+        self.display_thread.join()
+
+    def sleep(self):
+        self.screen_is_active = False
+        self.clear_screen()
+        self.display.sleep()
+
+    def awaken(self):
+        self.screen_is_active = True
+        self.display.displayPartBaseImage(self.display.getbuffer(self.canvas))
+        self.display.init(self.display.FULL_UPDATE)
+
+    def clear_screen(self):
+        self.display.Clear(0xFF)
+        time.sleep(2)
+        self.display.init(self.display.FULL_UPDATE)
 
     def reset_canvas(self):
         self.canvas = Image.new('1', (self.height, self.width), 255)
         self.canvas.rotate(90)  # landscape mode
 
-
     def render(self, isFrame=False):
+        self.should_render = False
         if self.partial_refresh_counter >= 10 or isFrame:
             self.display.init(self.display.FULL_UPDATE)
             self.display.displayPartBaseImage(
@@ -117,4 +134,3 @@ class EPaperInterface():
 
     def request_render(self):
         self.should_render = True
-

@@ -50,12 +50,6 @@ class PagesDisplay(Component):
         self.pages = [self.network_display, self.conversations_display]
         self.selected_page_index = 0
 
-    def swipe_handler(self):
-        # interpret swipe gesture from touch_interface
-        # if diff x difference is greater than y differeence, interperet as a horizontal swipe
-        # move up self.pages on right swipe and down on left swipe
-        return
-    
     def start(self):
         self.network_display.start()
         self.conversations_display.start()
@@ -65,7 +59,7 @@ class PagesDisplay(Component):
         draw = ImageDraw.Draw(self.ui.canvas)
         draw.text((0, 0), selected_page.title,
                   font=EPaperInterface.FONT_12)
-        self.ui.render()
+        self.ui.request_render()
 
 class MenuDisplay(Component):
     def __init__(self, app, parent):
