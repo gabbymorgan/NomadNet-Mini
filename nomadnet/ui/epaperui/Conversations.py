@@ -4,37 +4,37 @@ import time
 import LXMF
 import nomadnet
 import RNS
-import logging
 import traceback
 import threading
 
+from .BaseClasses import Component
 
-class ConversationsDisplay():
-    def __init__(self, app):
-        self.app = app
-        self.selected_conversation = None
+class ConversationsDisplay(Component):
+    def __init__(self, app, parent):
+        super().__init__(app, parent)
+        self.title = "Conversations"
+        self.conversations_list = ConversationsListDisplay(self.app, self)
+        self.selected_conversation = SelectedConversationDisplay(self.app, self)
+        self.sub_displays = [self.conversations_list, self.selected_conversation]
+        self.current_display = None
 
-
-    def display_list(self):
-        self.selected_conversation = None
-        self.update_conversation_list()
-
-    def display_conversation(self, source_hash=None):
-        self.selected_conversation = source_hash
-        self.update_conversation_list()
-
-    def update_conversation_list():
+    def start(self):
         return
 
-class ConversationsList():
-    def __init__(self, parent):
-        self.selected_conversation = parent.selected_conversation
+    def render(self):
+        return
 
-class SelectedConversation():
-  
-    def __init__(self, messages):
-        self.messages = messages
+class ConversationsListDisplay(Component):
+    def __init__(self, app, parent):
+        super().__init__(app, parent)
 
-    def update_display():
+    def render():
+        return
+
+class SelectedConversationDisplay(Component):
+    def __init__(self, app, parent):
+        super().__init__(app, parent)
+
+    def render():
         #render the display using all data attributes on self
         return

@@ -1,11 +1,11 @@
 # *****************************************************************************
-# * | File        :	  epd2in13_V3.py
+# * | File        :	  epd2in13_V4.py
 # * | Author      :   Waveshare team
 # * | Function    :   Electronic paper driver
 # * | Info        :
 # *----------------
-# * | This version:   V1.1
-# * | Date        :   2021-10-30
+# * | This version:   V1.0
+# * | Date        :   2023-08-14
 # # | Info        :   python demo
 # -----------------------------------------------------------------------------
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -50,50 +50,6 @@ class EPD:
     
     FULL_UPDATE = 0
     PART_UPDATE = 1
-    
-    lut_partial_update= [
-        0x0,0x40,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x80,0x80,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x40,0x40,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x0,0x80,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x10,0x0,0x0,0x0,0x0,0x0,0x0,  
-        0x1,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x1,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x22,0x22,0x22,0x22,0x22,0x22,0x0,0x0,0x0,
-        0x22,0x17,0x41,0x00,0x32,0x36,
-    ]
-
-    lut_full_update = [ 
-        0x80,0x4A,0x40,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x40,0x4A,0x80,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x80,0x4A,0x40,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x40,0x4A,0x80,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0xF,0x0,0x0,0x0,0x0,0x0,0x0,
-        0xF,0x0,0x0,0xF,0x0,0x0,0x2,
-        0xF,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x1,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x0,0x0,0x0,0x0,0x0,0x0,0x0,
-        0x22,0x22,0x22,0x22,0x22,0x22,0x0,0x0,0x0,
-        0x22,0x17,0x41,0x0,0x32,0x36,
-    ]
         
     '''
     function :Hardware reset
@@ -151,7 +107,7 @@ class EPD:
     '''
     def TurnOnDisplay(self):
         self.send_command(0x22) # Display Update Control
-        self.send_data(0xC7)
+        self.send_data(0xF7)
         self.send_command(0x20) # Activate Display Update Sequence
         self.ReadBusy()
     
@@ -161,45 +117,16 @@ class EPD:
     '''
     def TurnOnDisplayPart(self):
         self.send_command(0x22) # Display Update Control
-        self.send_data(0x0c)    # fast:0x0c, quality:0x0f, 0xcf
+        self.send_data(0xFF)    # fast:0x0c, quality:0x0f, 0xcf
         self.send_command(0x20) # Activate Display Update Sequence
         # self.ReadBusy()
         
     def TurnOnDisplayPart_Wait(self):
         self.send_command(0x22) # Display Update Control
-        self.send_data(0x0c)    # fast:0x0c, quality:0x0f, 0xcf
+        self.send_data(0xFF)    # fast:0x0c, quality:0x0f, 0xcf
         self.send_command(0x20) # Activate Display Update Sequence
         self.ReadBusy()
-    
-    '''
-    function : Set lut
-    parameter:
-        lut : lut data
-    '''    
-    def Lut(self, lut):
-        self.send_command(0x32)
-        for i in range(0, 153):
-            self.send_data(lut[i])
-        self.ReadBusy()
-    
-    '''
-    function : Send lut data and configuration
-    parameter:
-        lut : lut data 
-    '''
-    def SetLut(self, lut):
-        self.Lut(lut)
-        self.send_command(0x3f)
-        self.send_data(lut[153])
-        self.send_command(0x03)     # gate voltage
-        self.send_data(lut[154])
-        self.send_command(0x04)     # source voltage
-        self.send_data(lut[155])    # VSH
-        self.send_data(lut[156])    # VSH2
-        self.send_data(lut[157])    # VSL
-        self.send_command(0x2c)     # VCOM
-        self.send_data(lut[158])
-    
+
     '''
     function : Setting the display window
     parameter:
@@ -273,34 +200,22 @@ class EPD:
             self.send_data(0x80)
             
             self.ReadBusy()
-            
-            self.SetLut(self.lut_full_update)
         
         else:
             epdconfig.digital_write(self.reset_pin, 0)
             epdconfig.delay_ms(1)
             epdconfig.digital_write(self.reset_pin, 1)  
-            
-            self.SetLut(self.lut_partial_update)
-            self.send_command(0x37)
+
+            self.send_command(0x01) #Driver output control      
+            self.send_data(0xf9)
             self.send_data(0x00)
-            self.send_data(0x00)
-            self.send_data(0x00)
-            self.send_data(0x00)
-            self.send_data(0x00)
-            self.send_data(0x40)
-            self.send_data(0x00)
-            self.send_data(0x00)
-            self.send_data(0x00)  
             self.send_data(0x00)
 
             self.send_command(0x3C) #BorderWavefrom
             self.send_data(0x80)
 
-            self.send_command(0x22) 
-            self.send_data(0xC0)
-            self.send_command(0x20)
-            self.ReadBusy()
+            self.send_command(0x11) #data entry mode       
+            self.send_data(0x03)
 
             self.SetWindow(0, 0, self.width - 1, self.height - 1)
             self.SetCursor(0, 0)
@@ -353,29 +268,48 @@ class EPD:
         image : Image data
     '''
     def displayPartial(self, image):
-        if self.width%8 == 0:
-            linewidth = int(self.width/8)
-        else:
-            linewidth = int(self.width/8) + 1
+        epdconfig.digital_write(self.reset_pin, 0)
+        epdconfig.delay_ms(1)
+        epdconfig.digital_write(self.reset_pin, 1)  
+
+        self.send_command(0x01) #Driver output control      
+        self.send_data(0xf9)
+        self.send_data(0x00)
+        self.send_data(0x00)
+
+        self.send_command(0x3C) #BorderWavefrom
+        self.send_data(0x80)
+
+        self.send_command(0x11) #data entry mode       
+        self.send_data(0x03)
+
+        self.SetWindow(0, 0, self.width - 1, self.height - 1)
+        self.SetCursor(0, 0)
 
         self.send_command(0x24) # WRITE_RAM
-        # for j in range(0, self.height):
-            # for i in range(0, linewidth):
-                # self.send_data(image[i + j * linewidth]) 
         self.send_data2(image)                
         self.TurnOnDisplayPart()
         
     def displayPartial_Wait(self, image):
-        if self.width%8 == 0:
-            linewidth = int(self.width/8)
-        else:
-            linewidth = int(self.width/8) + 1
+        epdconfig.digital_write(self.reset_pin, 0)
+        epdconfig.delay_ms(1)
+        epdconfig.digital_write(self.reset_pin, 1)  
+
+        self.send_command(0x01) #Driver output control      
+        self.send_data(0xf9)
+        self.send_data(0x00)
+        self.send_data(0x00)
+
+        self.send_command(0x3C) #BorderWavefrom
+        self.send_data(0x80)
+
+        self.send_command(0x11) #data entry mode       
+        self.send_data(0x03)
+
+        self.SetWindow(0, 0, self.width - 1, self.height - 1)
+        self.SetCursor(0, 0)
         
         self.send_command(0x24) # WRITE_RAM
-        # for j in range(0, self.height):
-            # for i in range(0, linewidth):
-                # self.send_data(image[i + j * linewidth])
-
         self.send_data2(image)
         self.TurnOnDisplayPart_Wait()
 
@@ -433,3 +367,4 @@ class EPD:
         epdconfig.module_exit()
 
 ### END OF FILE ###
+
