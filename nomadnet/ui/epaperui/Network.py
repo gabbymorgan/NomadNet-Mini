@@ -18,19 +18,20 @@ class NetworkDisplay(Component):
         self.title = "Directory"
         self.current_announce_index = 0
         self.announces = self.app.directory.announce_stream
-        self.swipe_thread = threading.Thread(
-            daemon=True, target=self.swipe_listener)
+        self.touch_thread = threading.Thread(
+            daemon=True, target=self.touch_listener)
 
         print(self.announces)
 
-    def swipe_listener(self):
+    def touch_listener(self):
         gt = self.ui.touch_interface
         GT_Dev = self.ui.touch_interface_dev
         GT_Old = self.ui.touch_interface_old
 
-        while self.ui.screen_is_active:
+        while self.ui.app_is_running:
+            time.sleep(self.ui.MIN_LOOP_INTERVAL)
             selected_page = self.parent.pages[self.parent.selected_page_index]
-            while selected_page.title == self.title:
+            if self.ui.screen_is_active and selected_page.title == self.title:
                 gt.GT_Scan(GT_Dev, GT_Old)
                 if (GT_Old.X[0] == GT_Dev.X[0] and GT_Old.Y[0] == GT_Dev.Y[0] and GT_Old.S[0] == GT_Dev.S[0]):
                     continue
@@ -43,10 +44,10 @@ class NetworkDisplay(Component):
                 if new_current_announce_index != self.current_announce_index:
                     self.current_announce_index = new_current_announce_index
                     self.update()
-                self.ui.last_touched = time.time()
+
 
     def start(self):
-        self.swipe_thread.start()
+        self.touch_thread.start()
         self.update()
 
     def update(self):

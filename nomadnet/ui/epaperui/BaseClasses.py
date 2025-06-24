@@ -6,4 +6,8 @@ class Component:
         if self.parent:
             self.ui = parent.ui
         
-
+    def start(self):
+        return
+    
+    def update(self):
+        return

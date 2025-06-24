@@ -17,9 +17,11 @@ class EPaperInterface():
     # For context, see documentation for Waveshare 2.13 inch touch e-paper device.
     # https://www.waveshare.com/wiki/2.13inch_Touch_e-Paper_HAT_Manual#Raspberry_Pi
 
-    MAX_PARTIAL_REFRESHES = 10  # Protects screen from excessive partial refresh
+    MAX_PARTIAL_REFRESHES = 10
+    MIN_REFRESH_INTERVAL = 1
     MAX_REFRESH_INTERVAL = 24 * 60 * 60 
     TIMEOUT_INTERVAL = 120
+    MIN_LOOP_INTERVAL = 0.1 # optimal functioning of raspberry pi zero
     FONT_15 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 15)
     FONT_12 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 12)
 
@@ -64,6 +66,7 @@ class EPaperInterface():
 
     def touch_loop(self):
         while self.touch_flag:
+            time.sleep(self.MIN_LOOP_INTERVAL)
             if (self.touch_interface.digital_read(self.touch_interface.INT) == 0):
                 self.touch_interface_dev.Touch = 1
             else:
@@ -71,6 +74,7 @@ class EPaperInterface():
 
     def display_loop(self):
         while self.display_thread_flag:
+            time.sleep(self.MIN_REFRESH_INTERVAL) #e-paper minimum refresh interval
             now = time.time()
             if self.should_render:
                 self.render()
@@ -80,14 +84,14 @@ class EPaperInterface():
                 self.awaken()
             elif now - self.last_full_refresh > self.MAX_REFRESH_INTERVAL:
                 self.clear_screen()
-            time.sleep(1)
 
-    def sleeping_loop(self):
+    def screen_activity_loop(self):
         gt = self.touch_interface
         GT_Dev = self.touch_interface_dev
         GT_Old = self.touch_interface_old
         
-        while not self.screen_is_active:
+        while self.app_is_running:
+            time.sleep(self.MIN_LOOP_INTERVAL)
             gt.GT_Scan(GT_Dev, GT_Old)
             if (GT_Old.X[0] == GT_Dev.X[0] and GT_Old.Y[0] == GT_Dev.Y[0] and GT_Old.S[0] == GT_Dev.S[0]):
                 self.last_touched = time.time()
