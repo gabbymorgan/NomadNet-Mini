@@ -108,13 +108,12 @@ class EPaperInterface():
 
     def awaken(self):
         self.screen_is_active = True
-        self.display.init(self.display.FULL_UPDATE)
+        self.display.init(self.display.PART_UPDATE)
         self.display.displayPartBaseImage(self.display.getbuffer(self.canvas))
 
     def clear_screen(self):
-        self.display.Clear(0xFF)
-        time.sleep(2)
         self.display.init(self.display.FULL_UPDATE)
+        self.display.Clear(0xFF)
 
     def reset_canvas(self):
         self.canvas = Image.new('1', (self.height, self.width), 255)
