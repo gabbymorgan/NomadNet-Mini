@@ -5,7 +5,6 @@ from nomadnet.vendor.waveshare import epd2in13_V4
 from nomadnet.vendor.waveshare import gt1151
 import sys
 import os
-import logging
 
 fontdir = os.path.join(os.path.dirname(os.path.dirname(
     os.path.realpath(__file__))), 'epaperui/assets/fonts')
@@ -21,13 +20,11 @@ class EPaperInterface():
     MIN_REFRESH_INTERVAL = 1
     MAX_REFRESH_INTERVAL = 24 * 60 * 60 
     TIMEOUT_INTERVAL = 120
-    MIN_LOOP_INTERVAL = 0.1 # optimal functioning of raspberry pi zero
     FONT_15 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 15)
     FONT_12 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 12)
 
     def __init__(self):
         try:
-            logging.basicConfig(level=logging.DEBUG)
             self.display = epd2in13_V4.EPD()
             self.width = self.display.width
             self.height = self.display.height
@@ -49,9 +46,11 @@ class EPaperInterface():
                 daemon=True, target=self.touch_loop)
             self.display_thread = threading.Thread(
                 daemon=False, target=self.display_loop)
+            self.screen_activity_thread = threading.Thread(daemon=True, target=self.screen_activity_loop)
 
             self.touch_thread.start()
             self.display_thread.start()
+            self.screen_activity_thread.start()
 
             self.display.init(self.display.FULL_UPDATE)
             self.touch_interface.GT_Init()
@@ -66,7 +65,6 @@ class EPaperInterface():
 
     def touch_loop(self):
         while self.touch_flag:
-            time.sleep(self.MIN_LOOP_INTERVAL)
             if (self.touch_interface.digital_read(self.touch_interface.INT) == 0):
                 self.touch_interface_dev.Touch = 1
             else:
@@ -86,14 +84,10 @@ class EPaperInterface():
                 self.clear_screen()
 
     def screen_activity_loop(self):
-        gt = self.touch_interface
-        GT_Dev = self.touch_interface_dev
-        GT_Old = self.touch_interface_old
-        
         while self.app_is_running:
-            time.sleep(self.MIN_LOOP_INTERVAL)
-            gt.GT_Scan(GT_Dev, GT_Old)
-            if (GT_Old.X[0] == GT_Dev.X[0] and GT_Old.Y[0] == GT_Dev.Y[0] and GT_Old.S[0] == GT_Dev.S[0]):
+            self.touch_interface.GT_Scan(self.touch_interface_dev, self.touch_interface_old)
+            touch_pressure_changed = self.touch_interface_old.S[0] != self.touch_interface_dev.S[0]
+            if (touch_pressure_changed):
                 self.last_touched = time.time()
 
     def shutdown(self):
@@ -109,12 +103,13 @@ class EPaperInterface():
     def sleep(self):
         self.screen_is_active = False
         self.clear_screen()
+        time.sleep(2)
         self.display.sleep()
 
     def awaken(self):
         self.screen_is_active = True
-        self.display.displayPartBaseImage(self.display.getbuffer(self.canvas))
         self.display.init(self.display.FULL_UPDATE)
+        self.display.displayPartBaseImage(self.display.getbuffer(self.canvas))
 
     def clear_screen(self):
         self.display.Clear(0xFF)

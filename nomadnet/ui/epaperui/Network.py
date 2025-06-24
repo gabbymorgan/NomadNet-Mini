@@ -19,28 +19,23 @@ class NetworkDisplay(Component):
         self.current_announce_index = 0
         self.announces = self.app.directory.announce_stream
         self.touch_thread = threading.Thread(
-            daemon=True, target=self.touch_listener)
-
-        print(self.announces)
+            daemon=False, target=self.touch_listener)
 
     def touch_listener(self):
-        gt = self.ui.touch_interface
-        GT_Dev = self.ui.touch_interface_dev
-        GT_Old = self.ui.touch_interface_old
-
         while self.ui.app_is_running:
-            time.sleep(self.ui.MIN_LOOP_INTERVAL)
+            touch_y = self.ui.touch_interface_dev.Y[0]
+            prev_touch_y = self.ui.touch_interface_old.Y[0]
             selected_page = self.parent.pages[self.parent.selected_page_index]
             if self.ui.screen_is_active and selected_page.title == self.title:
-                gt.GT_Scan(GT_Dev, GT_Old)
-                if (GT_Old.X[0] == GT_Dev.X[0] and GT_Old.Y[0] == GT_Dev.Y[0] and GT_Old.S[0] == GT_Dev.S[0]):
+                if touch_y == prev_touch_y:
                     continue
-                elif (GT_Dev.Y[0] < (self.ui.height - 40)):
+                elif (touch_y < (self.ui.height - 40)):
                     new_current_announce_index = min(
                         len(self.announces)-1, self.current_announce_index + 1)
-                elif (GT_Dev.Y[0] > 40):
+                elif (touch_y > 40):
                     new_current_announce_index = max(
                         0, self.current_announce_index - 1)
+                print(new_current_announce_index)
                 if new_current_announce_index != self.current_announce_index:
                     self.current_announce_index = new_current_announce_index
                     self.update()
