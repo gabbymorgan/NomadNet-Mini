@@ -54,7 +54,9 @@ class PagesDisplay(Component):
 
     def update(self):
         selected_page = self.pages[self.selected_page_index]
+        self.ui.reset_canvas()
         draw = ImageDraw.Draw(self.ui.canvas)
         draw.text((0, 0), selected_page.title,
                   font=EPaperInterface.FONT_12)
         self.ui.request_render()
+        selected_page.start()

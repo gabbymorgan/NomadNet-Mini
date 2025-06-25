@@ -88,5 +88,5 @@ class NetworkDisplay(Component):
 
         else:
             draw.text((25, 25), "aww no friends!")
-
-        self.parent.update()
+        
+        self.ui.request_render()
