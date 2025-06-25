@@ -24,18 +24,15 @@ class MainDisplay(Component):
             self.should_update_render = False
 
             self.pages_display = PagesDisplay(self.app, self)
-            self.menu_display = MenuDisplay(self.app, self)
-
             self.start()
 
         except Exception as e:
             self.ui.shutdown()
-            print(e)
+            RNS.log("Error in Main Display. Exception was: " + str(e), RNS.LOG_ERROR)
+            print("Error in the fucking Main Display. Exception was: " + str(e))
 
     def start(self):
         self.pages_display.start()
-        self.menu_display.start()
-        self.ui.render(True)
 
     def update(self):
         return
@@ -48,11 +45,12 @@ class PagesDisplay(Component):
         self.conversations_display = ConversationsDisplay(self.app, self)
         self.network_display = NetworkDisplay(self.app, self)
         self.pages = [self.network_display, self.conversations_display]
-        self.selected_page_index = 0
+        self.selected_page_index = EPaperInterface.PAGE_INDEX_NETWORK
 
     def start(self):
-        self.network_display.start()
-        self.conversations_display.start()
+        selected_page = self.pages[self.selected_page_index]
+        selected_page.start()
+        return
 
     def update(self):
         selected_page = self.pages[self.selected_page_index]
@@ -60,13 +58,3 @@ class PagesDisplay(Component):
         draw.text((0, 0), selected_page.title,
                   font=EPaperInterface.FONT_12)
         self.ui.request_render()
-
-class MenuDisplay(Component):
-    def __init__(self, app, parent):
-        super().__init__(app, parent)
-
-    def start(self):
-        return
-
-    def update(self):
-        return

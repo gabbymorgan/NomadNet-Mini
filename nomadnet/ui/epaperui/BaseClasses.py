@@ -7,7 +7,7 @@ class Component:
             self.ui = parent.ui
         
     def start(self):
-        return
+        self.update()
     
     def update(self):
         return

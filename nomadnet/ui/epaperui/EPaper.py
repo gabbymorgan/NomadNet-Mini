@@ -22,6 +22,9 @@ class EPaperInterface():
     TIMEOUT_INTERVAL = 120
     FONT_15 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 15)
     FONT_12 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 12)
+    
+    PAGE_INDEX_NETWORK = 0
+    PAGE_INDEX_CONVERSATION = 1
 
     def __init__(self):
         try:
