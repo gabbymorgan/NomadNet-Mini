@@ -16,6 +16,7 @@ class ConversationDisplay(Component):
         self.conversation_peer = None
         self.conversation = None
         self.current_message_index = 0
+        self.messages = []
         self.touch_thread = threading.Thread(
             daemon=True, target=self.touch_listener)
 
@@ -26,6 +27,7 @@ class ConversationDisplay(Component):
     def update(self):
         try:
             if self.parent.current_page_index == EPaperInterface.PAGE_INDEX_CONVERSATION and self.conversation_peer:
+                self.ui.detect_screen_interaction()
                 existing_conversations = nomadnet.Conversation.conversation_list(
                     self.app)
                 source_hash = self.conversation_peer[1].hex()
@@ -35,11 +37,12 @@ class ConversationDisplay(Component):
                         source_hash, self.app)
                     for message in self.conversation.messages:
                         message.load()
-                        self.messages.append(MessageDisplay(self.app, self, message))
+                        self.messages.append(
+                            MessageDisplay(self.app, self, message))
                 self.ui.reset_canvas()
                 draw = ImageDraw.Draw(self.ui.canvas)
                 draw.text((0, 0), f"{self.conversation_peer[2].decode(encoding='utf-8', errors='strict')} ({self.conversation_peer[1].hex()[-6:]})",
-                  font=EPaperInterface.FONT_12)
+                          font=EPaperInterface.FONT_12)
                 draw.text((0, 100), "back",
                           font=EPaperInterface.FONT_15, fill=0)
                 if len(self.messages) > 0:
@@ -56,10 +59,11 @@ class ConversationDisplay(Component):
     def touch_listener(self):
         while self.ui.app_is_running:
             if self.parent.current_page_index == EPaperInterface.PAGE_INDEX_CONVERSATION:
+                self.ui.detect_screen_interaction()
                 if self.ui.screen_is_active and self.ui.did_swipe:
                     if self.ui.swipe_direction == EPaperInterface.SWIPE_LEFT:
                         self.current_message_index = min(
-                            self.current_message_index+1, len(self.conversation.messages)-1)
+                            self.current_message_index+1, len(self.messages)-1)
                         self.update()
                     elif self.ui.swipe_direction == EPaperInterface.SWIPE_RIGHT:
                         self.current_message_index = max(
@@ -90,7 +94,7 @@ class MessageDisplay(Component):
                     timestamp_string)
                 date_width = right - left
                 draw.text((date_width, 0), time.strftime('%Y-%m-%d %H:%M:%S',
-                                                                        time.localtime(self.timestamp)), font=EPaperInterface.FONT_12, fill=0)
+                                                         time.localtime(self.timestamp)), font=EPaperInterface.FONT_12, fill=0)
                 lines = textwrap.wrap(self.content, width=32)
                 text_y_position = 20
                 for line in lines:

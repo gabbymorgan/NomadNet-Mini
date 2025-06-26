@@ -27,6 +27,7 @@ class NetworkDisplay(Component):
     def network_touch_listener(self):
         while self.ui.app_is_running:
             if self.parent.current_page_index == EPaperInterface.PAGE_INDEX_NETWORK:
+                self.ui.detect_screen_interaction()
                 if self.ui.screen_is_active and self.ui.did_tap:
                     if (self.ui.tap_y > (self.ui.height - 20)):
                         self.current_peer_index = max(
@@ -61,7 +62,7 @@ class NetworkDisplay(Component):
 
             draw = ImageDraw.Draw(self.ui.canvas)
             draw.text((0, 0), self.title,
-                  font=EPaperInterface.FONT_12)
+                      font=EPaperInterface.FONT_12)
             draw.line((15, mid_width-15, 0, mid_width), fill=0, width=2)
             draw.line((0, mid_width, 15, mid_width+15), fill=0, width=2)
             draw.line((max_height-15, mid_width-15,

@@ -19,10 +19,10 @@ class EPaperInterface():
 
     # hardware and library constants
     MAX_PARTIAL_REFRESHES = 10
-    MIN_REFRESH_INTERVAL = 1 
+    MIN_REFRESH_INTERVAL = 1
     MAX_REFRESH_INTERVAL = 24 * 60 * 60
     TIMEOUT_INTERVAL = 120
-    SWIPE_SENSITIVITY = 0 # I just tested until I found what felt right
+    SWIPE_SENSITIVITY = 0  # I just tested until I found what felt right
     FONT_15 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 15)
     FONT_12 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 12)
 
@@ -36,7 +36,6 @@ class EPaperInterface():
 
     def __init__(self):
         try:
-            logging.basicConfig(level=logging.DEBUG)
             self.display = epd2in13_V4.EPD()
             self.width = self.display.width
             self.height = self.display.height
@@ -69,18 +68,15 @@ class EPaperInterface():
                 daemon=True, target=self.base_touch_loop)
             self.display_thread = threading.Thread(
                 daemon=False, target=self.display_loop)
-            self.screen_interaction_thread = threading.Thread(
-                daemon=True, target=self.screen_interaction_loop)
-            
-            self.reset_canvas()            
+
+            self.reset_canvas()
             self.display.init(self.display.FULL_UPDATE)
-            self.display.displayPartBaseImage(self.display.getbuffer(self.canvas))
+            self.display.displayPartBaseImage(
+                self.display.getbuffer(self.canvas))
             self.touch_interface.GT_Init()
 
             self.base_touch_thread.start()
             self.display_thread.start()
-            self.screen_interaction_thread.start()
-
 
         except KeyboardInterrupt:
             self.shutdown()
@@ -109,44 +105,43 @@ class EPaperInterface():
             elif now - self.last_full_refresh > self.MAX_REFRESH_INTERVAL:
                 self.clear_screen()
 
-    def screen_interaction_loop(self):
+    def detect_screen_interaction(self):
         # y goes up as touch moves left
         # x goes down as touch moves up
 
-        while self.app_is_running:
-            self.did_swipe = False
-            self.did_tap = False
+        self.did_swipe = False
+        self.did_tap = False
 
-            self.touch_interface.GT_Scan(
-                self.touch_interface_dev, self.touch_interface_old)
-            self.is_touching = (self.touch_interface_dev.X[0] != self.touch_interface_old.X[0]) or (
-                self.touch_interface_dev.Y[0] != self.touch_interface_old.Y[0] or self.touch_interface_dev.S[0] != self.touch_interface_old.S[0])
+        self.touch_interface.GT_Scan(
+            self.touch_interface_dev, self.touch_interface_old)
+        self.is_touching = (self.touch_interface_dev.X[0] != self.touch_interface_old.X[0]) or (
+            self.touch_interface_dev.Y[0] != self.touch_interface_old.Y[0] or self.touch_interface_dev.S[0] != self.touch_interface_old.S[0])
 
-            if self.is_touching and not self.has_been_touching:
-                self.last_touched = time.time()
-                self.touch_start_x = self.touch_interface_dev.X[0]
-                self.touch_start_y = self.touch_interface_dev.Y[0]
-                print(self.touch_start_x, self.touch_start_y)
+        if self.is_touching and not self.has_been_touching:
+            self.last_touched = time.time()
+            self.touch_start_x = self.touch_interface_dev.X[0]
+            self.touch_start_y = self.touch_interface_dev.Y[0]
+            print(self.touch_start_x, self.touch_start_y)
 
-            if self.has_been_touching and not self.is_touching:
-                self.touch_end_x = self.touch_interface_old.X[0]
-                self.touch_end_y = self.touch_interface_old.Y[0]
-                distance_horizontal = self.touch_start_y - self.touch_end_y
-                self.did_swipe = abs(distance_horizontal) > EPaperInterface.SWIPE_SENSITIVITY
+        if self.has_been_touching and not self.is_touching:
+            self.touch_end_x = self.touch_interface_old.X[0]
+            self.touch_end_y = self.touch_interface_old.Y[0]
+            distance_horizontal = self.touch_start_y - self.touch_end_y
+            self.did_swipe = abs(
+                distance_horizontal) > EPaperInterface.SWIPE_SENSITIVITY
 
-                if self.did_swipe:
-                    self.swipe_direction = EPaperInterface.SWIPE_LEFT if distance_horizontal > 0 else EPaperInterface.SWIPE_RIGHT
-                else:
-                    self.did_tap = True
-                    self.tap_x = self.touch_start_x
-                    self.tap_y = self.touch_start_y
-
-            self.has_been_touching = self.is_touching
-            if (self.did_tap):
-                print(f"tapped x={self.tap_x}, y={self.tap_y}")
             if self.did_swipe:
-                print(f'swiped {self.swipe_direction}')
+                self.swipe_direction = EPaperInterface.SWIPE_LEFT if distance_horizontal > 0 else EPaperInterface.SWIPE_RIGHT
+            else:
+                self.did_tap = True
+                self.tap_x = self.touch_start_x
+                self.tap_y = self.touch_start_y
 
+        self.has_been_touching = self.is_touching
+        if (self.did_tap):
+            print(f"tapped x={self.tap_x}, y={self.tap_y}")
+        if self.did_swipe:
+            print(f'swiped {self.swipe_direction}')
 
     def shutdown(self):
         self.touch_flag = False
