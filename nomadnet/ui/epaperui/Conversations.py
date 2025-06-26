@@ -9,62 +9,66 @@ from .EPaper import EPaperInterface
 from PIL import ImageDraw
 
 
-class ConversationsDisplay(Component):
+class ConversationDisplay(Component):
     def __init__(self, app, parent):
         super().__init__(app, parent)
-        self.title = "Conversations"
+        self.title = "Conversation"
         self.conversation_peer = None
         self.conversation = None
-        self.messages = []
-        self.current_message_index = None
-        self.touch_flag = False
+        self.current_message_index = 0
         self.touch_thread = threading.Thread(
-            daemon=False, target=self.touch_listener)
+            daemon=True, target=self.touch_listener)
 
     def start(self):
+        self.touch_thread.start()
+        self.update()
+
+    def update(self):
         try:
-            if self.parent.selected_page_index == EPaperInterface.PAGE_INDEX_CONVERSATION and self.conversation_peer:
+            if self.parent.current_page_index == EPaperInterface.PAGE_INDEX_CONVERSATION and self.conversation_peer:
                 existing_conversations = nomadnet.Conversation.conversation_list(
                     self.app)
                 source_hash = self.conversation_peer[1].hex()
+                self.messages = []
                 if source_hash in [c[0] for c in existing_conversations]:
                     self.conversation = nomadnet.Conversation(
                         source_hash, self.app)
                     for message in self.conversation.messages:
                         message.load()
-                        self.messages.append(
-                            MessageDisplay(self.app, self, message))
-                    self.current_message_index = 0
-                    self.messages[0].update()
-                self.touch_flag = True
-                self.touch_thread.start()
-                self.update()
+                        self.messages.append(MessageDisplay(self.app, self, message))
+                self.ui.reset_canvas()
+                draw = ImageDraw.Draw(self.ui.canvas)
+                draw.text((0, 0), f"{self.conversation_peer[2].decode(encoding='utf-8', errors='strict')} ({self.conversation_peer[1].hex()[-6:]})",
+                  font=EPaperInterface.FONT_12)
+                draw.text((0, 100), "back",
+                          font=EPaperInterface.FONT_15, fill=0)
+                if len(self.messages) > 0:
+                    self.messages[self.current_message_index].update()
+                else:
+                    draw.text((50, 50), "No messages?",
+                              font=EPaperInterface.FONT_15, fill=0)
+                self.ui.request_render()
 
         except Exception as e:
-            RNS.log("Error Conversation Display. Exception was: " +
+            RNS.log("Error in update method of ConversationDisplay. Exception was: " +
                     str(e), RNS.LOG_ERROR)
 
-    def update(self):
-        if self.parent.selected_page_index == EPaperInterface.PAGE_INDEX_CONVERSATION and self.conversation_peer:   
-            self.ui.reset_canvas()
-            draw = ImageDraw.Draw(self.ui.canvas)
-            draw.text((0,0), "back", font=EPaperInterface.FONT_15, fill=0)
-            if self.messages:
-                self.messages[self.current_message_index].update()
-
     def touch_listener(self):
-        while self.ui.app_is_running and self.touch_flag:
-            if self.parent.selected_page_index != EPaperInterface.PAGE_INDEX_CONVERSATION:
-                continue
-            if self.ui.screen_is_active and self.ui.did_swipe:
-                if self.ui.swipe_direction == EPaperInterface.SWIPE_UP:
-                    self.current_message_index = min(
-                        self.current_message_index+1, len(self.messages)-1)
-                    self.update()
-                elif self.ui.swipe_direction == EPaperInterface.SWIPE_DOWN:
-                    self.current_message_index = max(
-                        self.current_message_index-1, 0)
-                    self.update()
+        while self.ui.app_is_running:
+            if self.parent.current_page_index == EPaperInterface.PAGE_INDEX_CONVERSATION:
+                if self.ui.screen_is_active and self.ui.did_swipe:
+                    if self.ui.swipe_direction == EPaperInterface.SWIPE_LEFT:
+                        self.current_message_index = min(
+                            self.current_message_index+1, len(self.conversation.messages)-1)
+                        self.update()
+                    elif self.ui.swipe_direction == EPaperInterface.SWIPE_RIGHT:
+                        self.current_message_index = max(
+                            self.current_message_index-1, 0)
+                        self.update()
+                elif self.ui.screen_is_active and self.ui.did_tap:
+                    if self.ui.tap_x > self.ui.width-40 and self.ui.tap_y > self.ui.height-40:
+                        self.parent.current_page_index = EPaperInterface.PAGE_INDEX_NETWORK
+                        self.parent.update()
 
 
 class MessageDisplay(Component):
@@ -85,7 +89,7 @@ class MessageDisplay(Component):
                 left, top, right, bottom = EPaperInterface.FONT_15.getbbox(
                     timestamp_string)
                 date_width = right - left
-                draw.text((self.ui.height-date_width, 0), time.strftime('%Y-%m-%d %H:%M:%S',
+                draw.text((date_width, 0), time.strftime('%Y-%m-%d %H:%M:%S',
                                                                         time.localtime(self.timestamp)), font=EPaperInterface.FONT_12, fill=0)
                 lines = textwrap.wrap(self.content, width=32)
                 text_y_position = 20
@@ -100,5 +104,5 @@ class MessageDisplay(Component):
                 self.ui.request_render()
 
         except Exception as e:
-            RNS.log("Error in Message Display. Exception was: " +
+            RNS.log("Error in update method of MessageDisplay. Exception was: " +
                     str(e), RNS.LOG_ERROR)

@@ -31,14 +31,12 @@ class EPaperInterface():
     PAGE_INDEX_CONVERSATION = 1
 
     # gesture enums
-    SWIPE_UP = "up"
-    SWIPE_DOWN = "down"
     SWIPE_LEFT = "left"
     SWIPE_RIGHT = "right"
 
     def __init__(self):
         try:
-            logging
+            logging.basicConfig(level=logging.DEBUG)
             self.display = epd2in13_V4.EPD()
             self.width = self.display.width
             self.height = self.display.height
@@ -46,7 +44,6 @@ class EPaperInterface():
             self.touch_interface_dev = gt1151.GT_Development()
             self.touch_interface_old = gt1151.GT_Development()
             self.canvas = None
-            self.reset_canvas()
             self.touch_flag = True
             self.display_thread_flag = True
             self.app_is_running = True
@@ -74,17 +71,19 @@ class EPaperInterface():
                 daemon=False, target=self.display_loop)
             self.screen_interaction_thread = threading.Thread(
                 daemon=True, target=self.screen_interaction_loop)
+            
+            self.reset_canvas()            
+            self.display.init(self.display.FULL_UPDATE)
+            self.display.displayPartBaseImage(self.display.getbuffer(self.canvas))
+            self.touch_interface.GT_Init()
 
             self.base_touch_thread.start()
             self.display_thread.start()
             self.screen_interaction_thread.start()
 
-            self.display.init(self.display.FULL_UPDATE)
-            self.touch_interface.GT_Init()
-            self.display.Clear(0xFF)
 
         except KeyboardInterrupt:
-            self.quit()
+            self.shutdown()
 
         except Exception as e:
             RNS.log(
@@ -117,9 +116,6 @@ class EPaperInterface():
         while self.app_is_running:
             self.did_swipe = False
             self.did_tap = False
-            self.tap_y = None
-            self.tap_x = None
-            self.swipe_direction = None
 
             self.touch_interface.GT_Scan(
                 self.touch_interface_dev, self.touch_interface_old)
@@ -127,34 +123,30 @@ class EPaperInterface():
                 self.touch_interface_dev.Y[0] != self.touch_interface_old.Y[0] or self.touch_interface_dev.S[0] != self.touch_interface_old.S[0])
 
             if self.is_touching and not self.has_been_touching:
-                print("boop!")
                 self.last_touched = time.time()
                 self.touch_start_x = self.touch_interface_dev.X[0]
                 self.touch_start_y = self.touch_interface_dev.Y[0]
+                print(self.touch_start_x, self.touch_start_y)
 
             if self.has_been_touching and not self.is_touching:
                 self.touch_end_x = self.touch_interface_old.X[0]
                 self.touch_end_y = self.touch_interface_old.Y[0]
-                distance_vertical = self.touch_start_x - self.touch_end_x
                 distance_horizontal = self.touch_start_y - self.touch_end_y
-                self.did_swipe = abs(distance_vertical) > EPaperInterface.SWIPE_SENSITIVITY or abs(
-                    distance_horizontal) > EPaperInterface.SWIPE_SENSITIVITY
+                self.did_swipe = abs(distance_horizontal) > EPaperInterface.SWIPE_SENSITIVITY
 
                 if self.did_swipe:
-                    if abs(distance_horizontal) > abs(distance_vertical):
-                        self.swipe_direction = EPaperInterface.SWIPE_RIGHT if distance_horizontal < 0 else EPaperInterface.SWIPE_LEFT
-                    else:
-                        self.swipe_direction = EPaperInterface.SWIPE_UP if distance_vertical < 0 else EPaperInterface.SWIPE_DOWN
+                    self.swipe_direction = EPaperInterface.SWIPE_LEFT if distance_horizontal > 0 else EPaperInterface.SWIPE_RIGHT
                 else:
                     self.did_tap = True
                     self.tap_x = self.touch_start_x
                     self.tap_y = self.touch_start_y
 
             self.has_been_touching = self.is_touching
+            if (self.did_tap):
+                print(f"tapped x={self.tap_x}, y={self.tap_y}")
+            if self.did_swipe:
+                print(f'swiped {self.swipe_direction}')
 
-            if (self.did_tap or self.did_swipe):
-                print(self.did_swipe,  self.swipe_direction,
-                      self.did_tap, self.tap_x, self.tap_y)
 
     def shutdown(self):
         self.touch_flag = False

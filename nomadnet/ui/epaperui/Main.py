@@ -29,7 +29,6 @@ class MainDisplay(Component):
         except Exception as e:
             self.ui.shutdown()
             RNS.log("Error in Main Display. Exception was: " + str(e), RNS.LOG_ERROR)
-            print("Error in the fucking Main Display. Exception was: " + str(e))
 
     def start(self):
         self.pages_display.start()
@@ -42,21 +41,21 @@ class PagesDisplay(Component):
         super().__init__(app, parent)
         self.height = round(self.ui.height * .9)
         self.width = self.ui.width
-        self.conversations_display = ConversationsDisplay(self.app, self)
+        self.conversation_display = ConversationDisplay(self.app, self)
         self.network_display = NetworkDisplay(self.app, self)
-        self.pages = [self.network_display, self.conversations_display]
-        self.selected_page_index = EPaperInterface.PAGE_INDEX_NETWORK
+        self.pages = [self.network_display, self.conversation_display]
+        self.current_page_index = EPaperInterface.PAGE_INDEX_NETWORK
+        self.prev_page_index = EPaperInterface.PAGE_INDEX_NETWORK
 
     def start(self):
-        selected_page = self.pages[self.selected_page_index]
-        selected_page.start()
-        return
+        for page in self.pages:
+            page.start()
+        self.update()
+
 
     def update(self):
-        selected_page = self.pages[self.selected_page_index]
-        self.ui.reset_canvas()
-        draw = ImageDraw.Draw(self.ui.canvas)
-        draw.text((0, 0), selected_page.title,
-                  font=EPaperInterface.FONT_12)
-        self.ui.request_render()
-        selected_page.start()
+        current_page = self.pages[self.current_page_index]
+        if self.current_page_index != self.prev_page_index:
+            self.ui.reset_canvas()
+            current_page.update()
+        self.prev_page_index = self.current_page_index
