@@ -19,7 +19,6 @@ class EPaperInterface():
 
     # hardware and library constants
     MAX_PARTIAL_REFRESHES = 10
-    MIN_REFRESH_INTERVAL = 1
     MAX_REFRESH_INTERVAL = 24 * 60 * 60
     TIMEOUT_INTERVAL = 120
     FONT_15 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 15)
@@ -93,7 +92,6 @@ class EPaperInterface():
 
     def display_loop(self):
         while self.display_thread_flag:
-            time.sleep(self.MIN_REFRESH_INTERVAL)
             now = time.time()
             if self.should_render:
                 self.render()
