@@ -22,7 +22,6 @@ class EPaperInterface():
     MIN_REFRESH_INTERVAL = 1
     MAX_REFRESH_INTERVAL = 24 * 60 * 60
     TIMEOUT_INTERVAL = 120
-    SWIPE_SENSITIVITY = 0  # I just tested until I found what felt right
     FONT_15 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 15)
     FONT_12 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 12)
 
@@ -114,8 +113,7 @@ class EPaperInterface():
 
         self.touch_interface.GT_Scan(
             self.touch_interface_dev, self.touch_interface_old)
-        self.is_touching = (self.touch_interface_dev.X[0] != self.touch_interface_old.X[0]) or (
-            self.touch_interface_dev.Y[0] != self.touch_interface_old.Y[0] or self.touch_interface_dev.S[0] != self.touch_interface_old.S[0])
+        self.is_touching = self.touch_interface_dev.TouchCount > 0
 
         if self.is_touching and not self.has_been_touching:
             self.last_touched = time.time()
@@ -127,11 +125,10 @@ class EPaperInterface():
             self.touch_end_x = self.touch_interface_old.X[0]
             self.touch_end_y = self.touch_interface_old.Y[0]
             distance_horizontal = self.touch_start_y - self.touch_end_y
-            self.did_swipe = abs(
-                distance_horizontal) > EPaperInterface.SWIPE_SENSITIVITY
+            self.did_swipe = abs(distance_horizontal) > 0
 
             if self.did_swipe:
-                self.swipe_direction = EPaperInterface.SWIPE_LEFT if distance_horizontal > 0 else EPaperInterface.SWIPE_RIGHT
+                self.swipe_direction = EPaperInterface.SWIPE_RIGHT if distance_horizontal > 0 else EPaperInterface.SWIPE_LEFT
             else:
                 self.did_tap = True
                 self.tap_x = self.touch_start_x

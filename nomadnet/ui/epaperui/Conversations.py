@@ -40,6 +40,7 @@ class ConversationDisplay(Component):
                         message.load()
                         self.messages.append(
                             MessageDisplay(self.app, self, message))
+                self.messages.sort(key=lambda m: m.timestamp, reverse=True)
                 self.ui.reset_canvas()
                 draw = ImageDraw.Draw(self.ui.canvas)
                 draw.text((0, 0), f"{self.conversation_peer[2].decode(encoding='utf-8', errors='strict')} ({self.conversation_peer[1].hex()[-6:]})",
@@ -62,17 +63,18 @@ class ConversationDisplay(Component):
             if self.parent.current_page_index == EPaperInterface.PAGE_INDEX_CONVERSATION:
                 self.ui.detect_screen_interaction()
                 if self.ui.screen_is_active and self.ui.did_swipe:
-                    if self.ui.swipe_direction == EPaperInterface.SWIPE_LEFT:
+                    if self.ui.swipe_direction == EPaperInterface.SWIPE_RIGHT:
                         self.current_message_index = min(
                             self.current_message_index+1, len(self.messages)-1)
                         self.update()
-                    elif self.ui.swipe_direction == EPaperInterface.SWIPE_RIGHT:
+                    elif self.ui.swipe_direction == EPaperInterface.SWIPE_LEFT:
                         self.current_message_index = max(
                             self.current_message_index-1, 0)
                         self.update()
                 elif self.ui.screen_is_active and self.ui.did_tap:
                     if self.ui.tap_x > self.ui.width-40 and self.ui.tap_y > self.ui.height-40:
                         self.parent.current_page_index = EPaperInterface.PAGE_INDEX_NETWORK
+                        self.current_message_index = 0
                         self.parent.update()
 
 
