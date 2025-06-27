@@ -60,6 +60,7 @@ class NetworkDisplay(Component):
                 self.parent.update()
             self.prev_peer_index = self.current_peer_index
 
+            self.ui.reset_canvas()
             draw = ImageDraw.Draw(self.ui.canvas)
             draw.text((0, 0), self.title,
                       font=EPaperInterface.FONT_12)
