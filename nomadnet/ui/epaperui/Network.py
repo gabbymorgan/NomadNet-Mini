@@ -43,6 +43,7 @@ class NetworkDisplay(Component):
                         self.parent.conversation_display.conversation_peer = self.peers[
                             self.current_peer_index]
                         self.parent.update()
+            time.sleep(0.02)
 
     def start(self):
         self.network_touch_thread.start()

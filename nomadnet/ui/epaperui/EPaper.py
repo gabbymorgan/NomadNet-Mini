@@ -89,6 +89,7 @@ class EPaperInterface():
                 self.touch_interface_dev.Touch = 1
             else:
                 self.touch_interface_dev.Touch = 0
+            time.sleep(0.02)
 
     def display_loop(self):
         while self.display_thread_flag:
@@ -101,6 +102,7 @@ class EPaperInterface():
                 self.awaken()
             elif now - self.last_full_refresh > self.MAX_REFRESH_INTERVAL:
                 self.clear_screen()
+            time.sleep(0.1)
 
     def detect_screen_interaction(self):
         # y goes up as touch moves left
@@ -137,7 +139,7 @@ class EPaperInterface():
             print(f"tapped x={self.tap_x}, y={self.tap_y}")
         if self.did_swipe:
             print(f'swiped {self.swipe_direction}')
-
+        
     def shutdown(self):
         self.touch_flag = False
         self.display_thread_flag = False

@@ -76,6 +76,7 @@ class ConversationDisplay(Component):
                         self.parent.current_page_index = EPaperInterface.PAGE_INDEX_NETWORK
                         self.current_message_index = 0
                         self.parent.update()
+            time.sleep(0.02)
 
 
 class MessageDisplay(Component):
