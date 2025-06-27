@@ -6,6 +6,7 @@ import nomadnet
 import RNS
 import traceback
 import threading
+import arrow
 
 from PIL import ImageDraw
 from .EPaper import *
@@ -72,16 +73,13 @@ class NetworkDisplay(Component):
                        15, mid_width+15), fill=0, width=2)
 
             if self.peers and len(self.peers) > 0:
+                current_peer = self.peers[self.current_peer_index]
+                timestamp = arrow.get(current_peer[0])
                 draw.text(
-                    (25, 25), self.peers[self.current_peer_index][2], font=self.ui.FONT_15)
-                draw.text((25, 50), self.peers[self.current_peer_index][1].hex(
+                    (25, 30), current_peer[2], font=self.ui.FONT_15)
+                draw.text((25, 52), current_peer[1].hex(
                 ), font=self.ui.FONT_12)
-                draw.text((25, 70), time.strftime('%Y-%m-%d %H:%M:%S',
-                                                  time.localtime(self.peers[self.current_peer_index][0])), font=self.ui.FONT_12)
-                draw.text(
-                    (25, 90), self.peers[self.current_peer_index][3], font=self.ui.FONT_12)
-                draw.text((self.ui.height//2, self.ui.width-20),
-                          str(self.current_peer_index + 1), font=self.ui.FONT_12)
+                draw.text((25, 70), timestamp.humanize(), font=self.ui.FONT_12)
 
             else:
                 draw.text((25, 25), "aww no friends!")

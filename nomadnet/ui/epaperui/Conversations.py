@@ -3,6 +3,7 @@ import nomadnet
 import textwrap
 import threading
 import RNS
+import arrow
 
 from .BaseClasses import Component
 from .EPaper import EPaperInterface
@@ -87,14 +88,11 @@ class MessageDisplay(Component):
             current_message = self.parent.messages[self.parent.current_message_index]
             if self.file_path == current_message.file_path:
                 draw = ImageDraw.Draw(self.ui.canvas)
-                timestamp_string = time.strftime('%Y-%m-%d %H:%M:%S',
-                                                 time.localtime(
-                                                     self.timestamp))
-                left, top, right, bottom = EPaperInterface.FONT_15.getbbox(
-                    timestamp_string)
+                timestamp = arrow.get(self.timestamp)
+                datetime_string = f'{timestamp.humanize()} at {timestamp.format(fmt="h:mma", locale="en-us")}'
+                left, top, right, bottom = EPaperInterface.FONT_15.getbbox(datetime_string)
                 date_width = right - left
-                draw.text((date_width, 0), time.strftime('%Y-%m-%d %H:%M:%S',
-                                                         time.localtime(self.timestamp)), font=EPaperInterface.FONT_12, fill=0)
+                draw.text((date_width, 0), datetime_string, font=EPaperInterface.FONT_12, fill=0)
                 lines = textwrap.wrap(self.content, width=32)
                 text_y_position = 20
                 for line in lines:
