@@ -15,8 +15,8 @@ from .EPaper import EPaperInterface
 
 
 class NetworkDisplay(Component):
-    def __init__(self, app, parent):
-        super().__init__(app, parent)
+    def __init__(self, parent):
+        super().__init__(parent)
         self.title = "Directory"
         self.peers = [
             x for x in self.app.directory.announce_stream if x[3] == "peer"]

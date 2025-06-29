@@ -6,6 +6,8 @@ from nomadnet.vendor.waveshare import gt1151
 import sys
 import os
 import logging
+import RNS
+import time
 
 fontdir = os.path.join(os.path.dirname(os.path.dirname(
     os.path.realpath(__file__))), 'epaperui/assets/fonts')
@@ -18,7 +20,7 @@ class EPaperInterface():
     # https://www.waveshare.com/wiki/2.13inch_Touch_e-Paper_HAT_Manual#Raspberry_Pi
 
     # hardware and library constants
-    MAX_PARTIAL_REFRESHES = 10
+    MAX_PARTIAL_REFRESHES = 30
     MAX_REFRESH_INTERVAL = 24 * 60 * 60
     TIMEOUT_INTERVAL = 120
     FONT_15 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 15)
@@ -27,6 +29,7 @@ class EPaperInterface():
     # page index enums
     PAGE_INDEX_NETWORK = 0
     PAGE_INDEX_CONVERSATION = 1
+    PAGE_INDEX_COMPOSE = 2
 
     # gesture enums
     SWIPE_LEFT = "left"
@@ -49,6 +52,7 @@ class EPaperInterface():
             self.partial_refresh_counter = 0
             self.last_full_refresh = time.time()
 
+            # touch event attributes
             self.last_touched = time.time()
             self.is_touching = False
             self.has_been_touching = False
@@ -81,7 +85,7 @@ class EPaperInterface():
 
         except Exception as e:
             RNS.log(
-                "An error occured in the E-Paper UI. Exception was:" + str(e), RNS.LOG_ERROR)
+                "An error occured in the EPaperInterface. Exception was:" + str(e), RNS.LOG_ERROR)
 
     def base_touch_loop(self):
         while self.touch_flag:
@@ -102,11 +106,11 @@ class EPaperInterface():
                 self.awaken()
             elif now - self.last_full_refresh > self.MAX_REFRESH_INTERVAL:
                 self.clear_screen()
-            time.sleep(0.1)
+            time.sleep(1)
 
     def detect_screen_interaction(self):
-        # y goes up as touch moves left
-        # x goes down as touch moves up
+        # y values go up as touch moves left
+        # x values go up as touch moves down
 
         self.did_swipe = False
         self.did_tap = False
@@ -119,7 +123,6 @@ class EPaperInterface():
             self.last_touched = time.time()
             self.touch_start_x = self.touch_interface_dev.X[0]
             self.touch_start_y = self.touch_interface_dev.Y[0]
-            print(self.touch_start_x, self.touch_start_y)
 
         if self.has_been_touching and not self.is_touching:
             self.touch_end_x = self.touch_interface_old.X[0]
@@ -135,10 +138,7 @@ class EPaperInterface():
                 self.tap_y = self.touch_start_y
 
         self.has_been_touching = self.is_touching
-        if (self.did_tap):
-            print(f"tapped x={self.tap_x}, y={self.tap_y}")
-        if self.did_swipe:
-            print(f'swiped {self.swipe_direction}')
+
         
     def shutdown(self):
         self.touch_flag = False
@@ -171,7 +171,7 @@ class EPaperInterface():
 
     def render(self, isFrame=False):
         self.should_render = False
-        if self.partial_refresh_counter >= 10 or isFrame:
+        if self.partial_refresh_counter >= EPaperInterface.MAX_PARTIAL_REFRESHES or isFrame:
             self.display.init(self.display.FULL_UPDATE)
             self.display.displayPartBaseImage(
                 self.display.getbuffer(self.canvas))
@@ -182,3 +182,16 @@ class EPaperInterface():
 
     def request_render(self):
         self.should_render = True
+
+    def get_alignment(self, text, font):
+        left, top, right, bottom = font.getbbox(text)
+        text_width = right - left
+        text_height = bottom - top
+        
+        return {
+            'text_width': text_width,
+            'text_height': text_height,
+            'left_align': 0,
+            'right_align': self.height-text_width,
+            'center_align': (self.height-text_width)//2
+        }

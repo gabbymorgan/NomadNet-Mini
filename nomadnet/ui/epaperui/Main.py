@@ -14,16 +14,16 @@ picdir = os.path.join(os.path.dirname(os.path.dirname(
 
 
 class MainDisplay(Component):
-    def __init__(self, app):
+    def __init__(self):
         try:
-            super().__init__(app)
+            super().__init__()
             self.ui = EPaperInterface()
             self.height = self.ui.display.height
             self.width = self.ui.display.width
             self.app_is_running = True
             self.should_update_render = False
 
-            self.pages_display = PagesDisplay(self.app, self)
+            self.pages_display = PagesDisplay(self)
             self.start()
 
         except Exception as e:
@@ -37,13 +37,14 @@ class MainDisplay(Component):
         return
 
 class PagesDisplay(Component):
-    def __init__(self, app, parent):
-        super().__init__(app, parent)
+    def __init__(self, parent):
+        super().__init__(parent)
         self.height = round(self.ui.height * .9)
         self.width = self.ui.width
-        self.conversation_display = ConversationDisplay(self.app, self)
-        self.network_display = NetworkDisplay(self.app, self)
-        self.pages = [self.network_display, self.conversation_display]
+        self.conversation_display = ConversationDisplay(self)
+        self.network_display = NetworkDisplay(self)
+        self.compose_display = ComposeDisplay(self)
+        self.pages = [self.network_display, self.conversation_display, self.compose_display]
         self.current_page_index = EPaperInterface.PAGE_INDEX_NETWORK
         self.prev_page_index = EPaperInterface.PAGE_INDEX_NETWORK
 

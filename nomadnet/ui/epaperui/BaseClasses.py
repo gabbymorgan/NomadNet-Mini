@@ -1,6 +1,8 @@
+import nomadnet
+
 class Component:
-    def __init__(self, app, parent=None):
-        self.app = app
+    def __init__(self, parent=None):
+        self.app = nomadnet.NomadNetworkApp.get_shared_instance()
         self.parent = parent
 
         if self.parent:
