@@ -56,9 +56,9 @@ class ConversationDisplay(Component):
                 draw.text((alignment_data["center_align"], 0), conversation_peer_name,
                           font=EPaperInterface.FONT_12)
                 edit_icon = Image.open(os.path.join(
-                    picdir, 'edit.bmp')).resize(size=(30, 30))
+                    picdir, 'edit.bmp'))
                 back_icon = Image.open(os.path.join(
-                    picdir, 'backspace.bmp')).resize(size=(30, 30))
+                    picdir, 'backspace.bmp'))
                 self.ui.canvas.paste(edit_icon, (220, 95))
                 self.ui.canvas.paste(back_icon, (0, 95))
                 if len(self.messages) > 0:
@@ -184,10 +184,10 @@ class ComposeDisplay(Component):
                       font=EPaperInterface.FONT_15, fill=0)
             text_y_position += text_height
         back_icon = Image.open(os.path.join(
-            picdir, 'backspace.bmp')).resize(size=(30, 30))
+            picdir, 'backspace.bmp'))
         self.ui.canvas.paste(back_icon, (0, 95))
         send_icon = Image.open(os.path.join(
-            picdir, 'send-2.bmp')).resize(size=(30, 30))
+            picdir, 'send.bmp'))
         self.ui.canvas.paste(send_icon, (220, 95))
         self.ui.request_render()
 
