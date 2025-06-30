@@ -41,6 +41,8 @@ class ConversationDisplay(Component):
                 if source_hash in [c[0] for c in existing_conversations]:
                     self.conversation = nomadnet.Conversation(
                         source_hash, self.app)
+                    if self.app.conversation_is_unread(source_hash):
+                        self.app.mark_conversation_read(source_hash)
                     for message in self.conversation.messages:
                         message.load()
                         self.messages.append(

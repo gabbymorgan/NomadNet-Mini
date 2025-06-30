@@ -54,10 +54,6 @@ class NetworkDisplay(Component):
         try:
             if self.parent.current_page_index != EPaperInterface.PAGE_INDEX_NETWORK:
                 return
-            max_height = self.ui.height
-            max_width = self.ui.width
-            mid_height = self.ui.width//2
-            mid_width = self.ui.width//2
 
             if self.current_peer_index != self.prev_peer_index:
                 self.parent.update()
@@ -65,19 +61,27 @@ class NetworkDisplay(Component):
 
             self.ui.reset_canvas()
             background = Image.open(os.path.join(
-                    picdir, 'network-display.bmp'))
-            self.ui.canvas.paste(background, (0, 0))           
+                picdir, 'network-display.bmp'))
+            self.ui.canvas.paste(background, (0, 0))
             draw = ImageDraw.Draw(self.ui.canvas)
             draw.text((0, 0), self.title,
                       font=EPaperInterface.FONT_12)
             if self.peers and len(self.peers) > 0:
                 current_peer = self.peers[self.current_peer_index]
-                timestamp = arrow.get(current_peer[0])
+                peer_last_announce = current_peer[0]
+                peer_hash = current_peer[1].hex()
+                peer_alias = current_peer[2]
+                timestamp = arrow.get(peer_last_announce)
                 draw.text(
-                    (25, 30), current_peer[2], font=self.ui.FONT_15)
-                draw.text((25, 52), current_peer[1].hex(
-                ), font=self.ui.FONT_12)
+                    (25, 30), peer_alias, font=self.ui.FONT_15)
+                draw.text((25, 52), peer_hash, font=self.ui.FONT_12)
                 draw.text((25, 70), timestamp.humanize(), font=self.ui.FONT_12)
+                if self.app.conversation_is_unread(peer_hash):
+                    mail_icon = Image.open(os.path.join(
+                        picdir, 'mail.bmp'))
+                    self.ui.canvas.paste(mail_icon, (220, 0))
+                else:
+                    draw.rectangle((220,0,250,30), fill=255)
 
             else:
                 draw.text((25, 25), "aww no friends!")
