@@ -34,7 +34,6 @@ class ConversationDisplay(Component):
     def update(self):
         try:
             if self.parent.current_page_index == EPaperInterface.PAGE_INDEX_CONVERSATION and self.conversation_peer:
-                self.ui.detect_screen_interaction()
                 existing_conversations = nomadnet.Conversation.conversation_list(
                     self.app)
                 source_hash = self.conversation_peer[1].hex()
@@ -49,18 +48,15 @@ class ConversationDisplay(Component):
                 self.messages.sort(
                     key=lambda m: m.message.timestamp, reverse=True)
                 self.ui.reset_canvas()
+                background = Image.open(os.path.join(
+                    picdir, 'conversation-display.bmp'))
+                self.ui.canvas.paste(background, (0, 0))
                 draw = ImageDraw.Draw(self.ui.canvas)
                 conversation_peer_name = f"{self.conversation_peer[2].decode(encoding='utf-8', errors='strict')} ({self.conversation_peer[1].hex()[-6:]})"
                 alignment_data = self.ui.get_alignment(
                     conversation_peer_name, EPaperInterface.FONT_12)
                 draw.text((alignment_data["center_align"], 0), conversation_peer_name,
                           font=EPaperInterface.FONT_12)
-                edit_icon = Image.open(os.path.join(
-                    picdir, 'edit.bmp'))
-                back_icon = Image.open(os.path.join(
-                    picdir, 'backspace.bmp'))
-                self.ui.canvas.paste(edit_icon, (220, 95))
-                self.ui.canvas.paste(back_icon, (0, 95))
                 if len(self.messages) > 0:
                     self.messages[self.current_message_index].update()
                 else:
@@ -173,22 +169,19 @@ class ComposeDisplay(Component):
         if self.parent.current_page_index != EPaperInterface.PAGE_INDEX_COMPOSE:
             return
         self.ui.reset_canvas()
+        background = Image.open(os.path.join(
+            picdir, 'compose-display.bmp'))
+        self.ui.canvas.paste(background, (0, 0))
         draw = ImageDraw.Draw(self.ui.canvas)
-        lines = textwrap.wrap(self.char_buffer, width=32)
-        text_y_position = 20
+        lines = textwrap.wrap(self.char_buffer, width=32)[-5:]
+        text_y_position = 10
         for line in lines:
             left, top, right, bottom = EPaperInterface.FONT_15.getbbox(
                 line)
             text_height = bottom - top
-            draw.text((25, text_y_position), line,
+            draw.text((10, text_y_position), line,
                       font=EPaperInterface.FONT_15, fill=0)
             text_y_position += text_height
-        back_icon = Image.open(os.path.join(
-            picdir, 'backspace.bmp'))
-        self.ui.canvas.paste(back_icon, (0, 95))
-        send_icon = Image.open(os.path.join(
-            picdir, 'send.bmp'))
-        self.ui.canvas.paste(send_icon, (220, 95))
         self.ui.request_render()
 
     def keyboard_listener(self):
