@@ -25,27 +25,6 @@ class NetworkDisplay(Component):
         self.network_touch_thread = threading.Thread(
             daemon=True, target=self.network_touch_listener)
 
-    def network_touch_listener(self):
-        while self.ui.app_is_running:
-            if self.parent.current_page_index == EPaperInterface.PAGE_INDEX_NETWORK:
-                self.ui.detect_screen_interaction()
-                if self.ui.screen_is_active and self.ui.did_tap:
-                    if self.ui.tap_x > self.ui.width - 40:
-                        if (self.ui.tap_y > (self.ui.height - 30)):
-                            self.current_peer_index = max(
-                                0, self.current_peer_index - 1)
-                            self.update()
-                        elif (self.ui.tap_y < 40):
-                            self.current_peer_index = min(
-                                len(self.peers)-1, self.current_peer_index + 1)
-                            self.update()
-                    else:
-                        self.parent.current_page_index = EPaperInterface.PAGE_INDEX_CONVERSATION
-                        self.parent.conversation_display.conversation_peer = self.peers[
-                            self.current_peer_index]
-                        self.parent.update()
-            time.sleep(0.02)
-
     def start(self):
         self.network_touch_thread.start()
         self.update()
@@ -91,3 +70,31 @@ class NetworkDisplay(Component):
         except Exception as e:
             RNS.log(
                 "Error in update method of NetworkDisplay component. Exception is: " + e, RNS.LOG_ERROR)
+
+    def network_touch_listener(self):
+        while self.ui.app_is_running:
+            if self.parent.current_page_index == EPaperInterface.PAGE_INDEX_NETWORK:
+                self.ui.detect_screen_interaction()
+                if self.ui.screen_is_active and self.ui.did_tap:
+                    if self.ui.tap_x > self.ui.width - 40:
+                        if (self.ui.tap_y > (self.ui.height - 30)):
+                            self.current_peer_index = max(
+                                0, self.current_peer_index - 1)
+                            self.update()
+                        elif (self.ui.tap_y < 40):
+                            self.current_peer_index = min(
+                                len(self.peers)-1, self.current_peer_index + 1)
+                            self.update()
+                    else:
+                        self.parent.current_page_index = EPaperInterface.PAGE_INDEX_CONVERSATION
+                        self.parent.conversation_display.conversation_peer = self.peers[
+                            self.current_peer_index]
+                        self.parent.update()
+            time.sleep(0.02)
+    
+    def refresh_loop(self):
+        while self.ui.app_is_running:
+            if self.parent.current_page_index == EPaperInterface.PAGE_INDEX_NETWORK and len(self.peers) > 0:
+                if self.app.conversation_is_unread(self.conversation_peer[1].hex()):
+                    self.update()
+            time.sleep(5)

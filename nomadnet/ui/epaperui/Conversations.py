@@ -26,9 +26,12 @@ class ConversationDisplay(Component):
         self.messages = []
         self.touch_thread = threading.Thread(
             daemon=True, target=self.touch_listener)
+        self.refresh_thread = threading.Thread(
+            daemon=True, target=self.refresh_loop)
 
     def start(self):
         self.touch_thread.start()
+        self.refresh_thread.start()
         self.update()
 
     def update(self):
@@ -54,10 +57,11 @@ class ConversationDisplay(Component):
                     picdir, 'conversation-display.bmp'))
                 self.ui.canvas.paste(background, (0, 0))
                 draw = ImageDraw.Draw(self.ui.canvas)
+                draw.text((0, 0), self.title, font=EPaperInterface.FONT_12)
                 conversation_peer_name = f"{self.conversation_peer[2].decode(encoding='utf-8', errors='strict')} ({self.conversation_peer[1].hex()[-6:]})"
                 alignment_data = self.ui.get_alignment(
                     conversation_peer_name, EPaperInterface.FONT_12)
-                draw.text((alignment_data["center_align"], 0), conversation_peer_name,
+                draw.text((alignment_data["right_align"], 0), conversation_peer_name,
                           font=EPaperInterface.FONT_12)
                 if len(self.messages) > 0:
                     self.messages[self.current_message_index].update()
@@ -92,6 +96,13 @@ class ConversationDisplay(Component):
                         self.parent.current_page_index = EPaperInterface.PAGE_INDEX_COMPOSE
                         self.parent.update()
             time.sleep(0.02)
+
+    def refresh_loop(self):
+        while self.ui.app_is_running:
+            if self.parent.current_page_index == EPaperInterface.PAGE_INDEX_CONVERSATION and self.conversation_peer:
+                if self.app.conversation_is_unread(self.conversation_peer[1].hex()):
+                    self.update()
+            time.sleep(1)
 
     def get_state_string(self, message: LXMF.LXMessage):
         if self.app.lxmf_destination.hash == message.lxm.source_hash:
@@ -209,8 +220,13 @@ class ComposeDisplay(Component):
                         self.current_message_index = 0
                         self.parent.update()
                     elif self.ui.tap_x > self.ui.width-40 and self.ui.tap_y < 40:
-                        self.parent.conversation_display.conversation.send(
-                            self.char_buffer)
+                        if self.parent.conversation_display.conversation:
+                            self.parent.conversation_display.conversation.send(
+                                self.char_buffer)
+                        else:
+                            peer_hash = self.parent.conversation_display.conversation_peer[1].hex()
+                            new_conversation = nomadnet.Conversation(peer_hash, nomadnet.NomadNetworkApp.get_shared_instance(), initiator=True)
+                            new_conversation.send(self.char_buffer)
                         self.parent.current_page_index = EPaperInterface.PAGE_INDEX_CONVERSATION
                         self.char_buffer = ""
                         self.parent.update()

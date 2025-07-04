@@ -171,6 +171,8 @@ class EPaperInterface():
 
     def render(self, isFrame=False):
         self.should_render = False
+        if not self.screen_is_active:
+            return
         if self.partial_refresh_counter >= EPaperInterface.MAX_PARTIAL_REFRESHES or isFrame:
             self.display.init(self.display.FULL_UPDATE)
             self.display.displayPartBaseImage(
